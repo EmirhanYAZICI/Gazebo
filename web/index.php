@@ -1,3 +1,4 @@
+<?php /* Copyright (c) 2026 Emirhan Yazıcı. All Rights Reserved. */ ?>
 <!DOCTYPE html>
 <html lang="tr">
 <head>

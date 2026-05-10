@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Emirhan Yazıcı. All Rights Reserved.
 """
 vision_engine.py — YOLOv8 Görüntü İşleme Motoru
 ==================================================
