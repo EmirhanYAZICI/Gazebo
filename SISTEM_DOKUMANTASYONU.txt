@@ -1,0 +1,78 @@
+======================================================
+İNSAN VE SİLAH TESPİT SİSTEMİ - DETAYLI DOKÜMANTASYON
+======================================================
+
+Bu proje, güvenlik kameraları üzerinden gerçek zamanlı olarak insanları ve bu insanların elindeki silahları (veya silaha benzeyen nesneleri) tespit etmek amacıyla geliştirilmiş %100 web tabanlı bir Yapay Zeka sistemidir.
+
+Proje başlangıçta otonom drone entegrasyonu için yapılmış olsa da, daha sonra tamamen sadeleştirilerek yerel bir Web Uygulamasına (PHP + Python) dönüştürülmüştür.
+
+SİSTEM MİMARİSİ:
+Sistem iki ana parçadan oluşur:
+1. Python (Arka Plan Yapay Zeka Motoru): Kamerayı okur, YOLOv8 modellerini çalıştırır ve sonuçları `.json` ile `.jpg` formatında kaydeder.
+2. PHP & HTML (Web Arayüzü): Kullanıcının gördüğü kontrol panelidir. Arka plandaki Python kodunu başlatır, durdurur ve tespit edilen verileri anlık olarak ekrana yansıtır.
+
+======================================================
+DOSYA VE KLASÖR YAPISI (Hangi Dosya Ne İşe Yarar?)
+======================================================
+
+1. [src/] KLASÖRÜ (Yapay Zeka ve Çekirdek Mantık)
+------------------------------------------------------
+Bu klasör, sistemin beyni olan Python kodlarını barındırır. Hiçbir arayüze (pencereye) ihtiyaç duymadan arka planda gizlice çalışacak şekilde tasarlanmıştır.
+
+* src/config.py
+  Sistemin "Ayarlar" dosyasıdır. Model yolları, kamera çözünürlüğü, FPS ve en önemlisi "Güven Eşikleri" (Confidence Thresholds) burada yer alır. Örneğin `YOLO_WEAPON_CONFIDENCE` değerini düşürürseniz, sistem el hareketlerini bile silah zannedebilir.
+
+* src/detector.py
+  Sistemin "Ana Motoru"dur. Web arayüzünden "Başlat"a basıldığında bu dosya çalışır. Sonsuz bir döngü içinde kameradan görüntü alır, `vision_engine.py`ye gönderip analiz ettirir, uyarı varsa `alert_system.py`yi tetikler ve en son bulduğu sonuçları web sayfasının okuyabilmesi için `web/data/status.json` ve `frame.jpg` dosyalarına yazar.
+
+* src/vision_engine.py
+  Görüntü işleme ve YOLOv8 modellerinin çalıştırıldığı yerdir. "İki Aşamalı" tespit yapar:
+  1. Aşama: Ekranda İnsan veya Hayvan var mı diye bakar (yolov8n.pt).
+  2. Aşama: Eğer insan bulursa, o insanın olduğu bölgeyi keser (crop) ve sadece o bölge içerisinde silah arar (best.pt). Böylece sistem çok daha hızlı ve hatasız çalışır.
+
+* src/camera_stream.py
+  Kameradan donmasız ve akıcı (gecikmesiz) görüntü alabilmek için "Multi-threading" (Çoklu İş Parçacığı) yöntemiyle yazılmış kamera okuma dosyasıdır. Arka planda kamerayı sürekli açık tutup en taze kareyi (frame) yakalar.
+
+* src/alert_system.py
+  Bir tehdit (silah) algılandığında ne olacağına karar veren sistemdir. Peş peşe alarm vermemesi için "Cooldown" (Bekleme Süresi) mantığıyla çalışır. Alarm durumunu `logs/detections/alert_log.json` dosyasına kaydeder.
+
+* src/analyze_photo_cli.py
+  Web arayüzünden yüklenen "Fotoğraf Analizi" işlemleri için özel olarak yazılmış komut satırı dosyasıdır. Kamerayı kullanmaz, sadece PHP'nin gönderdiği fotoğrafı alır, analiz eder, kaç insan/hayvan/silahlı kişi olduğunu JSON formatında PHP'ye geri döndürür.
+
+
+2. [web/] KLASÖRÜ (Kullanıcı Arayüzü ve Sunucu)
+------------------------------------------------------
+Bu klasör, projenin görselliğini ve kontrollerini sağlayan Web dosyalarını barındırır. XAMPP (Apache) üzerinden çalışır.
+
+* web/index.php
+  Kullanıcının tarayıcıdan girdiği "Dashboard" (Kontrol Paneli) sayfasıdır. Modern tasarımı, karanlık modu (dark-mode), istatistikleri ve canlı kamera akışını barındırır. Üzerindeki butonlarla PHP'ye emirler gönderir.
+
+* web/api.php
+  Python ve HTML arasındaki "Köprü" (Backend API). index.php'den gelen istekleri (Başlat, Durdur, Fotoğraf Yükle) karşılar. Eğer başlat tuşuna basıldıysa Windows'a `start /B python detector.py` emrini vererek kamerayı açar. Fotoğraf analizini yönetir.
+
+* web/data/ (Klasör)
+  Python'un ürettiği canlı görüntü (`frame.jpg`), anlık istatistikler (`status.json`) ve başlat/durdur ayarlarının (`settings.json`) tutulduğu geçici veri klasörüdür. Web sayfası buradaki verileri saniyede birkaç kez okuyarak ekranı günceller.
+
+
+3. DİĞER DOSYA VE KLASÖRLER
+------------------------------------------------------
+* models/weights/best.pt
+  Bizim özel olarak eğittiğimiz (veya Roboflow'dan aldığımız) Silah Tespit modelidir.
+
+* yolov8n.pt
+  Ultralytics'in dünyaca ünlü, her şeyi tanıyan standart (Pre-trained) modelidir. Biz bunu sadece İnsan ve Hayvan tespit etmek için kullanıyoruz.
+
+* logs/detections/
+  Sistemin tehdit algıladığı zamanların kalıcı olarak kaydedildiği yerdir (`alert_log.json`). Web sayfasındaki "Alarm Geçmişi" burayı okur.
+
+* requirements.txt
+  Sistemin çalışması için kurulması gereken Python kütüphanelerinin listesidir (opencv-python, ultralytics vb. `pip install -r requirements.txt` ile kurulur).
+
+
+======================================================
+SİSTEM NASIL ÇALIŞTIRILIR?
+======================================================
+1. XAMPP Control Panel'i açın ve Apache sunucusunu başlatın (Eğer sistem Desktop'ta ise ve taşımadıysanız, kendi başlattığımız PHP server komutuyla da çalışır).
+2. Tarayıcıdan http://localhost:8080/index.php (veya XAMPP kurulu adresinize) gidin.
+3. Ekranda sol menüden "BAŞLAT" tuşuna basın. PHP arka planda `detector.py` dosyasını çalıştıracak ve sistem devreye girecektir.
+4. Çıkmak istediğinizde "DURDUR" tuşuna basın, tüm kameralar ve Python işlemleri otomatik kapatılır.

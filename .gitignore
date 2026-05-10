@@ -1,0 +1,11 @@
+venv/
+logs/
+__pycache__/
+*.pyc
+*.pt
+web/logs/
+web/data/
+.env
+.vscode/
+.idea/
+node_modules/

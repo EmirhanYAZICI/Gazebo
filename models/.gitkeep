@@ -1,0 +1,6 @@
+# Bu klasor fine-tuned silah tespit modeli icin ayrilmistir.
+# weapon_yolov8n.pt dosyasini buraya koyun.
+#
+# Model indirme:
+#   - Roboflow Universe: https://universe.roboflow.com/search?q=weapon+detection
+#   - HuggingFace: https://huggingface.co/Subh775/Threat-Detection-YOLOv8n

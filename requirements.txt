@@ -1,0 +1,31 @@
+# ===================================================
+# İnsan + Silah Tespit Sistemi — Python Bağımlılıkları
+# ===================================================
+# Kurulum: pip install -r requirements.txt
+#
+# Modeller:
+#   - İnsan : yolov8n.pt (https://github.com/ultralytics/ultralytics)
+#   - Silah  : models/weights/best.pt (HuggingFace'den indirilmiş)
+#
+# ── Kullanılan Açık Kaynak Projeler ──
+# - AI Motoru (YOLOv8): https://github.com/ultralytics/ultralytics
+# - Palantir Motoru (SpiderFoot): https://github.com/smicallef/spiderfoot
+# - API Sunucusu (FastAPI): https://github.com/tiangolo/fastapi
+# - Görsel Arayüz (Three.js): https://github.com/mrdoob/three.js
+#
+# ── Veri Kaynakları ──
+# Palantir modülü, 200'den fazla harici kaynaktan veri toplar:
+# Whois, Shodan, Censys, Google, Bing, Twitter, Github, HaveIBeenPwned vb.
+
+# ── Yapay Zeka / Görüntü İşleme ──
+ultralytics>=8.0        # YOLOv8 — nesne tespiti motoru
+opencv-python>=4.8      # Kamera akışı, görüntü çizimi
+numpy>=1.24             # Sayısal hesaplamalar
+
+# ── Model İndirme ──
+huggingface_hub>=1.0    # Silah modelini HuggingFace'den çekmek için
+
+# ── Web API (FastAPI) ──
+fastapi>=0.100          # Ultra hızlı Python web framework
+uvicorn>=0.23           # ASGI sunucusu (FastAPI çalıştırır)
+python-multipart>=0.0.6 # Dosya yükleme desteği
